@@ -11,20 +11,35 @@
 ## 🚀 Hướng dẫn cài đặt và sử dụng
 
 ### 1. Yêu cầu hệ thống
+
 - Tải và cài đặt [Docker](https://www.docker.com/) cùng hệ thống Docker Compose.
 - Phiên bản Python 3.8 trở lên.
 
 ### 2. Khởi chạy Weaviate Vector Database
+
 Sử dụng Docker Compose để khởi chạy Weaviate ở dưới dạng background:
+
 ```bash
 cd src
 docker-compose up -d
 ```
 
-### 3. Thiết lập môi trường Python
+### 3. Thiết lập môi trường Python (sử dụng uv)
+
+Dự án này sử dụng trình quản lý package [uv](https://github.com/astral-sh/uv) để cài đặt nhanh chóng và quản lý thư viện.
+
+```bash
+# Đồng bộ và tự động tạo môi trường cài đặt tất cả thư viện (đòi hỏi pyproject.toml hoặc requirements.txt nếu được cấu hình)
+uv sync
+
+# Kích hoạt môi trường (tuỳ chọn nếu bạn muốn dùng python trần trực tiếp, hoặc có thể dùng `uv run`)
+source .venv/bin/activate
+```
 
 ### 4. Nhúng (Embed) dữ liệu vào Weaviate
+
 Đọc dữ liệu từ recipe.json và lưu trữ dưới dạng vector vào CSDL bằng
+
 ```bash
 python src/embed/embed.py
 ```
