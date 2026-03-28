@@ -1,3 +1,4 @@
+from sympy import vector
 import weaviate
 from weaviate.classes.config import Configure
 from sentence_transformers import SentenceTransformer
@@ -91,6 +92,23 @@ class WeaviateEmbeddingClient:
         )
         return collection
 
+    def retrieve_similar(self, collection_name, query_text, top_k=5):
+        """Truy vấn tìm kiếm các đối tượng tương tự dựa trên vector embedding"""
+        collection = self.client.collections.get(collection_name)
+        
+        # Tạo embedding cho query
+        query_embedding = self.model.encode([query_text])[0]
+        
+        # Thực hiện truy vấn tìm kiếm tương tự
+        response = collection.query.hybrid(
+            query=query_text,  # Truy vấn văn bản để kết hợp với vector
+            vector=query_embedding.tolist(),
+            limit=top_k,
+
+        )
+        return response.objects
+        
+        
     def verify_data(self, collection_name):
         """Kiểm tra xuất dữ liệu sau khi chèn"""
         collection = self.client.collections.get(collection_name)
@@ -115,6 +133,7 @@ class WeaviateEmbeddingClient:
         return list(collections.keys()) 
     
     def peek_objects(self, collection_name, limit=5):
+        """Xem thử một số object trong collection để kiểm tra dữ liệu đã chèn có đúng không"""
         print(f"\n--- Peek thử {limit} object trong collection '{collection_name}' ---")
         collection = self.client.collections.get(collection_name)
         
@@ -142,7 +161,7 @@ class WeaviateEmbeddingClient:
 
 if __name__ == "__main__":
     sample_text = "Đây là test 123."
-    target_collection = "TextDemo"
+    target_collection = "RecipeDemo"
     
     # Sử dụng context manager (with) để đảm bảo kết nối luôn đóng thông qua hàm __exit__
     with WeaviateEmbeddingClient() as client:
@@ -159,7 +178,18 @@ if __name__ == "__main__":
         # client.list_collections()
         
         # 5. Xóa collection
-        client.delete_collection(target_collection)
+        # client.delete_collection(target_collection)
 
         # 6. Peek thử một số object trong collection
         # client.peek_objects(target_collection, limit=3)
+
+        # 7. Retrieve similar 
+        query = "Tôi muốn tìm công thức nấu ăn canh mồng tơi nấu đậu phụ và rong kombu"
+        response = client.retrieve_similar(target_collection, query_text=query, top_k=3)
+        print("\n--- Kết quả truy vấn tương tự ---")
+        for idx, item in enumerate(response):
+            # print(f"{idx+1}. {item.properties.get('name', 'N/A')} (Similarity Score: {item.similarity_score:.4f})")
+            print(f"   Tên món: {item.properties.get('name', 'N/A')}")
+            print(f"   Nguyên liệu: {item.properties.get('ingredients', 'N/A')}")
+            print(f"   Cách làm: {item.properties.get('instructions', 'N/A')}\n")
+            print(f"="*20)

@@ -1,3 +1,5 @@
-src/__pycache__
 data/recipe.json
 src/weaviate_data/
+__pycache__
+__init__.py
+.env
