@@ -1,0 +1,46 @@
+version: "3.1"
+
+intents:
+  - greet
+  - search_recipe
+  - next_step
+  - prev_step
+  - set_preference
+  - goodbye         # Thêm mới
+  - ask_suggestion  # Thêm mới
+  - bot_challenge   # Thêm mới
+
+entities:
+  - dish
+  - preference
+
+slots:
+  preference:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: preference
+  recipe_steps:
+    type: list
+    mappings:
+      - type: custom
+  current_step_index:
+    type: float
+    initial_value: 0
+    mappings:
+      - type: custom
+
+responses:
+  utter_greet:
+    - text: "Chào Minh! Bạn muốn tìm công thức hay cần mình hướng dẫn nấu món gì không?"
+  utter_ask_style:
+    - text: "Bạn muốn nấu [gà] theo kiểu chiên hay kho để mình tìm cho chuẩn?"
+  utter_goodbye:    # Thêm mới
+    - text: "Tạm biệt Minh, chúc bạn có một bữa ăn ngon miệng!"
+  utter_iamabot:    # Thêm mới
+    - text: "Mình là trợ lý ảo nấu ăn chạy bằng Rasa và RAG của bạn."
+
+actions:
+  - action_recipe_search
+  - action_next_step
+  - action_prev_step

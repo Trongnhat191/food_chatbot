@@ -1,0 +1,76 @@
+version: "3.1"
+
+stories:
+
+- story: Luồng tìm kiếm và nấu ăn tiêu chuẩn (Happy Path - Hướng A & B)
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: search_recipe
+    entities:
+    - dish: "canh mồng tơi"
+  - action: action_recipe_search
+  - intent: next_step
+  - action: action_next_step
+  - intent: next_step
+  - action: action_next_step
+  - intent: next_step
+  - action: action_next_step
+
+- story: Tìm kiếm có lọc khi thông tin chưa rõ ràng (Hướng A)
+  steps:
+  - intent: ask_suggestion
+    entities:
+    - ingredient: "gà"
+  - action: action_recipe_search  # Action này sẽ nhận diện thiếu "kiểu nấu" và hỏi lại
+  - intent: search_recipe
+    entities:
+    - dish: "gà kho"
+  - action: action_recipe_search
+
+- story: Thiết lập sở thích trước khi tìm kiếm (Hướng C)
+  steps:
+  - intent: set_preference
+    entities:
+    - preference: "không ăn cay"
+  - action: utter_greet
+  - intent: search_recipe
+    entities:
+    - dish: "sườn xào"
+  - action: action_recipe_search # RAG sẽ tự động nhận thêm context "không ăn cay" từ Slot
+
+- story: Người dùng muốn quay lại bước trước (Hướng B)
+  steps:
+  - intent: search_recipe
+  - action: action_recipe_search
+  - intent: next_step
+  - action: action_next_step
+  - intent: prev_step
+  - action: action_prev_step
+
+- story: Thay đổi món ăn giữa chừng (Context Switching)
+  steps:
+  - intent: search_recipe
+    entities:
+    - dish: "trứng chiên"
+  - action: action_recipe_search
+  - intent: next_step
+  - action: action_next_step
+  - intent: search_recipe
+    entities:
+    - dish: "canh chua"
+  - action: action_recipe_search # Reset index và lưu recipe mới vào Slot
+  - intent: next_step
+  - action: action_next_step
+
+- story: Kết thúc quy trình nấu ăn
+  steps:
+  - intent: next_step
+  - action: action_next_step # Giả sử đây là bước cuối
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: Xử lý khi người dùng hỏi về khả năng của bot (Hướng A)
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot

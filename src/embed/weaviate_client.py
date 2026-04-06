@@ -3,13 +3,21 @@ import weaviate
 from weaviate.classes.config import Configure
 from sentence_transformers import SentenceTransformer
 import torch
+import os
 class WeaviateEmbeddingClient:
     def __init__(self, model_name="BAAI/bge-m3"):
         self.model_name = model_name
         self._model = None  # Ban đầu chưa load model
         print("Đang kết nối tới Weaviate...")
         # Sử dụng connect_to_local() của v4
-        self.client = weaviate.connect_to_local()
+        self.client = weaviate.connect_to_custom(
+        http_host=os.getenv("WEAVIATE_HOST", "localhost"),
+        http_port=8080,
+        http_secure=False,
+        grpc_host=os.getenv("WEAVIATE_HOST", "localhost"),
+        grpc_port=50051,
+        grpc_secure=False
+)
 
     @property
     def model(self):

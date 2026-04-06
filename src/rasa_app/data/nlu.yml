@@ -1,0 +1,32 @@
+version: "3.1"
+nlu:
+- intent: greet
+  examples: |
+    - chào bạn
+    - hello
+    - xin chào
+- intent: search_recipe
+  examples: |
+    - Cách nấu [phở bò](dish)
+    - Hướng dẫn làm [canh mồng tơi](dish)
+    - Tìm công thức [sườn xào](dish)
+- intent: next_step
+  examples: |
+    - xong rồi
+    - bước tiếp theo đi
+    - làm gì nữa không
+    - tiếp tục
+- intent: prev_step
+  examples: |
+    - quay lại bước trước
+    - cho xem lại bước vừa nãy
+    - bước trước đó là gì
+- intent: set_preference
+  examples: |
+    - Tôi không ăn được [cay](preference)
+    - Đừng cho [hành](preference) nhé
+    - Mình bị dị ứng [hải sản](preference)
+- intent: ask_suggestion
+  examples: |
+    - Gợi ý món [gà](ingredient)
+    - Có món gì ngon từ [thịt lợn](ingredient) không?
