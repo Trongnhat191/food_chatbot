@@ -25,7 +25,7 @@ def process_data(data):
     return texts
 
 if __name__ == "__main__":
-    file_path = "../../data/recipe.json"
+    file_path = "data/recipe.json"
 
     data = load_data(file_path)
     embedding_content = process_data(data)

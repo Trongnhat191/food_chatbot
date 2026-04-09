@@ -167,37 +167,62 @@ class WeaviateEmbeddingClient:
         print("Đã đóng kết nối với Weaviate.")
 
 
+# if __name__ == "__main__":
+#     sample_text = "Đây là test 123."
+#     target_collection = "RecipeDemo"
+    
+#     # Sử dụng context manager (with) để đảm bảo kết nối luôn đóng thông qua hàm __exit__
+#     with WeaviateEmbeddingClient() as client:
+#         # 1. Khởi tạo Collection
+#         # client.setup_collection(target_collection)
+        
+#         # # 2. Embed content text và lưu kết quả vào CSDL weaviate
+#         # client.embed_and_insert(target_collection, sample_text)
+        
+#         # # 3. Kiểm tra bằng cách fetch từ CSDL về
+#         # client.verify_data(target_collection)
+        
+#         # # 4. Liệt kê tất cả các collection
+#         # client.list_collections()
+        
+#         # 5. Xóa collection
+#         # client.delete_collection(target_collection)
+
+#         # 6. Peek thử một số object trong collection
+#         # client.peek_objects(target_collection, limit=3)
+
+#         # 7. Retrieve similar 
+#         query = "Tôi muốn tìm công thức nấu ăn canh mồng tơi nấu đậu phụ và rong kombu"
+#         response = client.retrieve_similar(target_collection, query_text=query, top_k=3)
+#         print("\n--- Kết quả truy vấn tương tự ---")
+#         for idx, item in enumerate(response):
+#             # print(f"{idx+1}. {item.properties.get('name', 'N/A')} (Similarity Score: {item.similarity_score:.4f})")
+#             print(f"   Tên món: {item.properties.get('name', 'N/A')}")
+#             print(f"   Nguyên liệu: {item.properties.get('ingredients', 'N/A')}")
+#             print(f"   Cách làm: {item.properties.get('instructions', 'N/A')}\n")
+#             print(f"="*20)
+
 if __name__ == "__main__":
-    sample_text = "Đây là test 123."
     target_collection = "RecipeDemo"
     
-    # Sử dụng context manager (with) để đảm bảo kết nối luôn đóng thông qua hàm __exit__
     with WeaviateEmbeddingClient() as client:
-        # 1. Khởi tạo Collection
-        # client.setup_collection(target_collection)
-        
-        # # 2. Embed content text và lưu kết quả vào CSDL weaviate
-        # client.embed_and_insert(target_collection, sample_text)
-        
-        # # 3. Kiểm tra bằng cách fetch từ CSDL về
-        # client.verify_data(target_collection)
-        
-        # # 4. Liệt kê tất cả các collection
-        # client.list_collections()
-        
-        # 5. Xóa collection
-        # client.delete_collection(target_collection)
+        # --- KIỂM TRA 1: Liệt kê các kho đang có ---
+        client.list_collections()
 
-        # 6. Peek thử một số object trong collection
-        # client.peek_objects(target_collection, limit=3)
+        # --- KIỂM TRA 2: Soi thử nội dung 3 món đầu tiên ---
+        # (Để xem name, ingredients có bị None hay không)
+        client.peek_objects(target_collection, limit=3)
 
-        # 7. Retrieve similar 
-        query = "Tôi muốn tìm công thức nấu ăn canh mồng tơi nấu đậu phụ và rong kombu"
-        response = client.retrieve_similar(target_collection, query_text=query, top_k=3)
-        print("\n--- Kết quả truy vấn tương tự ---")
-        for idx, item in enumerate(response):
-            # print(f"{idx+1}. {item.properties.get('name', 'N/A')} (Similarity Score: {item.similarity_score:.4f})")
-            print(f"   Tên món: {item.properties.get('name', 'N/A')}")
-            print(f"   Nguyên liệu: {item.properties.get('ingredients', 'N/A')}")
-            print(f"   Cách làm: {item.properties.get('instructions', 'N/A')}\n")
-            print(f"="*20)
+        # --- KIỂM TRA 3: Test độ thông minh (RAG Test) ---
+        query = "món canh nào mát cho mùa hè có đậu phụ"
+        print(f"\n--- Đang thử tìm kiếm ý nghĩa: '{query}' ---")
+        
+        response = client.retrieve_similar(target_collection, query_text=query, top_k=2)
+        
+        if not response:
+            print("❌ Không tìm thấy gì. Có thể dữ liệu chưa vào hoặc collection sai tên.")
+        else:
+            for idx, item in enumerate(response):
+                print(f"{idx+1}. Tên món: {item.properties.get('name')}")
+                print(f"   Lý do chọn: Vì có nguyên liệu [{item.properties.get('ingredients')[:50]}...]")
+                print("-" * 30)
