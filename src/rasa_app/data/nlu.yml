@@ -30,3 +30,16 @@ nlu:
   examples: |
     - Gợi ý món [gà](ingredient)
     - Có món gì ngon từ [thịt lợn](ingredient) không?
+- intent: suggest_by_ingredients
+  examples: |
+    - tôi có [thịt lợn](ingredient) và [bí xanh](ingredient) nấu gì ngon?
+    - còn [trứng](ingredient) thì làm món gì được?
+    - gợi ý món ăn với [đậu phụ](ingredient)
+
+- intent: show_full_recipe
+  examples: |
+    - hiện hết đi
+    - cho xem cả bài
+    - xem toàn bộ các bước món [rau muống](dish)
+    - show hết cách làm [sườn xào](dish)
+    - cho xem tất cả các bước

@@ -9,6 +9,8 @@ intents:
   - goodbye         # Thêm mới
   - ask_suggestion  # Thêm mới
   - bot_challenge   # Thêm mới
+  - suggest_by_ingredients
+  - show_full_recipe
 
 entities:
   - dish
@@ -44,3 +46,4 @@ actions:
   - action_recipe_search
   - action_next_step
   - action_prev_step
+  - action_show_full_recipe

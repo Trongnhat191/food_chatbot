@@ -13,24 +13,46 @@ class ActionRecipeSearch(Action):
     def name(self) -> Text: return "action_recipe_search"
 
     def run(self, dispatcher, tracker, domain):
-        query = tracker.latest_message.get('text')
+        # Lấy toàn bộ câu chat của người dùng (bao gồm cả phần "cho 4 người")
+        query = tracker.latest_message.get('text').lower() 
         pref = tracker.get_slot("preference")
-
-        # Hướng A & C: Gọi RAG với sở thích
+        
+        # Gọi engine - Engine bây giờ đã có prompt mới để xử lý số người
         full_text = get_rag_recipe(query, pref)
         
         if not full_text:
-            dispatcher.utter_message(text="Rất tiếc, mình chưa tìm thấy công thức này.")
+            dispatcher.utter_message(text="Rất tiếc, mình chưa tìm thấy thông tin này.")
             return []
 
-        # Hướng B: Tách steps từ dấu gạch đứng '|'
-        steps = [s.strip() for s in full_text.split('|') if s.strip()]
-        
-        if steps:
-            dispatcher.utter_message(text=f"Tìm thấy rồi! {steps[0]}")
+        if '|' in full_text:
+            steps = [s.strip() for s in full_text.split('|') if s.strip()]
+            
+            # Logic kiểm tra xem tất cả (giữ nguyên của Minh)
+            keywords_show_all = ["hết", "tất cả", "toàn bộ", "full"]
+            if any(word in query for word in keywords_show_all):
+                full_recipe = "\n".join([f"• {s}" for s in steps])
+                dispatcher.utter_message(text=f"Vâng, đây là công thức đã được điều chỉnh phù hợp:\n\n{full_recipe}")
+                return [SlotSet("recipe_steps", steps), SlotSet("current_step_index", 0)]
+
+            # Hiện bước 1
+            dispatcher.utter_message(text=f"Tìm thấy rồi! Đây là bước đầu tiên:\n{steps[0]}")
+            dispatcher.utter_message(text="Bạn gõ 'tiếp' để xem bước sau hoặc 'hiện hết' nhé.")
             return [SlotSet("recipe_steps", steps), SlotSet("current_step_index", 0)]
         
-        dispatcher.utter_message(text=full_text)
+        dispatcher.utter_message(text=f"Dưới đây là một số gợi ý cho bạn:\n{full_text}")
+        return [SlotSet("recipe_steps", None)]
+
+class ActionShowFullRecipe(Action):
+    def name(self) -> Text: return "action_show_full_recipe"
+
+    def run(self, dispatcher, tracker, domain):
+        steps = tracker.get_slot("recipe_steps")
+        if not steps:
+            dispatcher.utter_message(text="Bạn chưa chọn món nào để xem toàn bộ công thức cả.")
+            return []
+        
+        full_recipe = "\n".join([f"• {s}" for s in steps])
+        dispatcher.utter_message(text=f"Đây là toàn bộ quy trình:\n{full_recipe}")
         return []
 
 class ActionNextStep(Action):

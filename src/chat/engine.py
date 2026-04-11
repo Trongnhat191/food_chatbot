@@ -11,21 +11,19 @@ def get_rag_recipe(query, preference=None):
     if preference:
         query = f"{query} (Lưu ý đặc biệt: {preference})"
 
-    # 1. Truy vấn ngữ cảnh từ Weaviate
+    # 1. Truy vấn ngữ cảnh từ Weaviate - Tăng top_k lên 3 để AI có nhiều lựa chọn hơn
     with WeaviateEmbeddingClient() as client:
         retrieve_context = client.retrieve_similar(
             os.getenv("WEAVIATE_COLLECTION", "RecipeDemo"), 
             query_text=query, 
-            top_k=1 # Giữ nguyên top 1 để tiết kiệm token
+            top_k=3 
         )
         
     if not retrieve_context:
         return None
 
-    # --- BƯỚC SỬA ĐỔI QUAN TRỌNG: GIỚI HẠN DỮ LIỆU ĐẦU VÀO ---
     context_text = ""
     for obj in retrieve_context:
-        # Lấy dữ liệu và cắt bớt nếu nó quá dài (giới hạn mỗi phần khoảng 2000 ký tự)
         name = obj.properties.get('name', '')[:200]
         ingredients = obj.properties.get('ingredients', '')[:1500]
         instructions = obj.properties.get('instructions', '')[:2000]
@@ -33,16 +31,22 @@ def get_rag_recipe(query, preference=None):
         context_text += (
             f"Tên món: {name}\n"
             f"Nguyên liệu: {ingredients}\n"
-            f"Cách làm: {instructions}\n\n"
+            f"Cách làm: {instructions}\n"
+            f"--- Kết thúc một món ---\n\n"
         )
 
-    # 2. Gọi Groq với System Prompt tối ưu
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     
+    # CẬP NHẬT SYSTEM PROMPT: Cho phép AI tính toán định lượng
     system_prompt = (
-        "Bạn là trợ lý nấu ăn. Dựa vào dữ liệu gốc để trả lời câu hỏi.\n"
-        "QUY ĐỊNH: Chia cách làm thành các bước rõ ràng. "
-        "Ngăn cách các bước bằng dấu gạch đứng '|'. Ví dụ: Bước 1... | Bước 2..."
+        "Bạn là đầu bếp trợ lý ảo chuyên nghiệp. Nhiệm vụ của bạn:\n"
+        "1. Nếu người dùng liệt kê nguyên liệu: Hãy gợi ý 2-3 tên món phù hợp.\n"
+        "2. Nếu người dùng hỏi cách nấu hoặc tìm món cụ thể: Hãy liệt kê nguyên liệu và các bước làm.\n"
+        "3. QUY ĐỊNH ĐỊNH LƯỢNG: Nếu người dùng yêu cầu cho một số lượng người cụ thể (ví dụ: 4 người), "
+        "hãy dựa vào định lượng trong dữ liệu gốc và TỰ ĐỘNG TÍNH TOÁN LẠI (Scale) các con số nguyên liệu "
+        "cho phù hợp với số người đó. Đừng máy móc chép lại con số sai lệch.\n"
+        "4. QUY ĐỊNH ĐỊNH DẠNG: Ngăn cách mỗi bước nấu bằng dấu '|'. Ví dụ: Bước 1... | Bước 2...\n"
+        "5. Nếu là gợi ý món, dùng dấu '-' để liệt kê."
     )
 
     try:
@@ -50,10 +54,9 @@ def get_rag_recipe(query, preference=None):
             model=os.getenv("MODEL_NAME"),
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Dữ liệu gốc:\n{context_text}\n\nCâu hỏi: {query}"}
+                {"role": "user", "content": f"Dữ liệu gốc:\n{context_text}\n\nCâu hỏi của người dùng: {query}"}
             ],
-            temperature=0.5,
-            # GIỚI HẠN OUTPUT: Tránh việc model viết quá dài làm tổng token vượt ngưỡng 8000
+            temperature=0.4, # Giảm nhiệt độ xuống một chút để tính toán chính xác hơn
             max_completion_tokens=1500, 
             top_p=1,
             stream=False 

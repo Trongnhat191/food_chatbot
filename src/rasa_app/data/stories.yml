@@ -2,75 +2,51 @@ version: "3.1"
 
 stories:
 
-- story: Luồng tìm kiếm và nấu ăn tiêu chuẩn (Happy Path - Hướng A & B)
+- story: Luồng từ gợi ý nguyên liệu đến nấu từng bước (Happy Path)
   steps:
   - intent: greet
   - action: utter_greet
-  - intent: search_recipe
+  - intent: suggest_by_ingredients
     entities:
-    - dish: "canh mồng tơi"
-  - action: action_recipe_search
-  - intent: next_step
-  - action: action_next_step
+    - ingredient: "đậu phụ"
+    - ingredient: "nấm"
+  - action: action_recipe_search  
+  - intent: search_recipe        
+    entities:
+    - dish: "canh đậu phụ nấu nấm"
+  - action: action_recipe_search  
   - intent: next_step
   - action: action_next_step
   - intent: next_step
   - action: action_next_step
 
-- story: Tìm kiếm có lọc khi thông tin chưa rõ ràng (Hướng A)
+- story: Gợi ý nguyên liệu và xem toàn bộ công thức luôn
   steps:
-  - intent: ask_suggestion
-    entities:
-    - ingredient: "gà"
-  - action: action_recipe_search  # Action này sẽ nhận diện thiếu "kiểu nấu" và hỏi lại
-  - intent: search_recipe
-    entities:
-    - dish: "gà kho"
+  - intent: suggest_by_ingredients
   - action: action_recipe_search
-
-- story: Thiết lập sở thích trước khi tìm kiếm (Hướng C)
-  steps:
-  - intent: set_preference
-    entities:
-    - preference: "không ăn cay"
-  - action: utter_greet
   - intent: search_recipe
-    entities:
-    - dish: "sườn xào"
-  - action: action_recipe_search # RAG sẽ tự động nhận thêm context "không ăn cay" từ Slot
+  - action: action_recipe_search
+  - intent: show_full_recipe      
+  - action: action_show_full_recipe
 
-- story: Người dùng muốn quay lại bước trước (Hướng B)
+- story: Tìm món trực tiếp và xem toàn bộ công thức
   steps:
   - intent: search_recipe
   - action: action_recipe_search
-  - intent: next_step
-  - action: action_next_step
-  - intent: prev_step
-  - action: action_prev_step
+  - intent: show_full_recipe
+  - action: action_show_full_recipe
 
-- story: Thay đổi món ăn giữa chừng (Context Switching)
+- story: Đang nấu món này nhưng muốn đổi sang món khác (Context Switch)
   steps:
   - intent: search_recipe
-    entities:
-    - dish: "trứng chiên"
   - action: action_recipe_search
   - intent: next_step
   - action: action_next_step
-  - intent: search_recipe
-    entities:
-    - dish: "canh chua"
-  - action: action_recipe_search # Reset index và lưu recipe mới vào Slot
-  - intent: next_step
+  - intent: search_recipe          
+  - action: action_recipe_search  
   - action: action_next_step
 
-- story: Kết thúc quy trình nấu ăn
+- story: Người dùng gõ "tiếp" khi chưa chọn món (Xử lý lỗi)
   steps:
   - intent: next_step
-  - action: action_next_step # Giả sử đây là bước cuối
-  - intent: goodbye
-  - action: utter_goodbye
-
-- story: Xử lý khi người dùng hỏi về khả năng của bot (Hướng A)
-  steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  - action: action_next_step       
